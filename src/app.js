@@ -33,6 +33,11 @@ font-family: 'Slabo', serif;
 &:hover {
   color: #C0FFEE
 }
+@media (max-width: 500px) {
+  & {
+    color: #BADA55;
+  }
+}
 `.trim();
 
 injectGlobal`
