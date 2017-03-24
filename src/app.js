@@ -6,6 +6,7 @@ import Ace from 'react-ace';
 import 'brace/mode/javascript';
 import 'brace/mode/scss';
 import 'brace/theme/tomorrow_night_blue';
+import Ribbon from './github-ribbon';
 
 function debounce (func, timeout) {
   let timerId = null;
@@ -169,15 +170,22 @@ EditCode.propTypes = {
 function toJS (css) {
   try {
     const code = cssjs.objectify(postcss.parse(css));
-    return JSON.stringify(code, null, 2).replace(/'/g, `\\'`).replace(/"/g, `'`).replace(/'(?=.*:)/g, '').split('\n').map(line => {
-      if (!line) debugger;
-      if (line.match(/[\-@:&\.#](?=.*:)/g)) {
-        return line.replace(/(\S.*)(?=:)/, `'$1'`)
-      } else {
-        return line;
-      }
-    }).join('\n')
-  } catch (err) {}
+    return JSON.stringify(code, null, 2)
+      .replace(/'/g, `\\'`)
+      .replace(/"/g, `'`)
+      .replace(/'(?=.*:)/g, '')
+      .split('\n')
+      .map(line => {
+        if (line.match(/[\-@:&%\.#](?=.*:)/g)) {
+          return line.replace(/(\S.*)(?=:)/, `'$1'`)
+        } else {
+          return line;
+        }
+      })
+      .join('\n')
+  } catch (err) {
+    console.error('Couldn\'t convert CSS to JS.', err);
+  }
 }
 
 function toCSS (js, cb) {
@@ -186,7 +194,9 @@ function toCSS (js, cb) {
     eval(`val = ${js}`);
     postcss().process(val, { parser: cssjs })
       .then(code => cb(code.css));
-  } catch (err) {}
+  } catch (err) {
+    console.error('Couldn\'t convert JS to CSS.', err);
+  }
 }
 
 const CODE_FLUSH = 400;
@@ -203,14 +213,16 @@ class Root extends Component {
   onEditCssCode (value) {
     if (value.length < 4) return;
     else {
-      this.setState(() => { jsCode: toJS(value) })
+      this.setState(() => ({ jsCode: toJS(value) }))
     }
   }
 
   onEditJsCode (value) {
     if (value.length < 4) return;
     else {
-      toCSS(value, (css) => this.setState({ cssCode: css }));
+      toCSS(value, (css) => {
+        this.setState({ cssCode: css });
+      });
     }
   }
 
@@ -230,6 +242,8 @@ class Root extends Component {
           onChange={this.onEditJsCode}
           value={this.state.jsCode}
         />
+
+        <Ribbon bg={theme.TERTIARY} fg={theme.PRIMARY} />
       </Shell>
     );
   }
