@@ -26,24 +26,63 @@ const theme = {
 
 const INITIAL_CSS_CODE = `
 background: royalblue;
-text-align: salmon;
+text-align: center;
 border: solid 2px green;
 font-family: 'Slabo', serif;
 -webkit-user-select: none;
 &:hover {
-  color: #C0FFEE
+    color: #C0FFEE
 }
 @media (max-width: 500px) {
-  & {
-    color: #BADA55;
-  }
+    & {
+        color: #BADA55;
+    }
 }
 `.trim();
 
+// language=SCSS prefix="*{" suffix="}"
 injectGlobal`
-  * {
-    box-sizing: border-box;
-  }
+* {
+  box-sizing: border-box;
+}
+
+.ace_tooltip {
+  font-size: 1rem;
+}
+
+.ace_gutter-cell.ace_error,
+.ace_gutter-cell.ace_warning,
+.ace_gutter-cell.ace_info {
+  background-image: none !important;
+  position: relative;
+}
+
+.ace_gutter-cell.ace_error:after,
+.ace_gutter-cell.ace_warning:after,
+.ace_gutter-cell.ace_info:after {
+  content: '';
+  opacity: 0.9;
+  width: 5px;
+  height: 10px;
+  border-radius: 2px;
+  position: absolute;
+  top: 8px;
+  bottom: 0;
+  left: 10px;
+  right: 0;
+}
+
+.ace_gutter-cell.ace_error:after {
+  background: orangered;
+}
+
+.ace_gutter-cell.ace_warning:after {
+  background: gold;
+}
+
+.ace_gutter-cell.ace_info:after {
+  background: powderblue;
+}
 `;
 
 // language=SCSS prefix="*{" suffix="}"
@@ -76,7 +115,7 @@ const Pane = styled.div`
   border-radius: 10px;
   height: 78vh;
   width: 41vw;
-  padding: 20px 10px;
+  padding: 20px 0;
   background: ${theme.SECONDARY};
   &:first-child {
     margin-right: 3vw;
@@ -154,13 +193,15 @@ class EditCode extends Component {
         value={this.state.code}
         onChange={this.onEdit}
         tabSize={2}
-        fontSize={20}
+        fontSize={18}
         showPrintMargin={false}
         wrapEnabled={true}
         setOptions={{
-          useWorker: false,
-          behavioursEnabled: false,
-          displayIndentGuides: false
+          cursorStyle: 'smooth',
+          useWorker: true,
+          wrapBehavioursEnabled: true,
+          displayIndentGuides: false,
+          showFoldWidgets: false
         }}
       />
       <PaneLabel>{label}</PaneLabel>
@@ -175,7 +216,7 @@ EditCode.propTypes = {
 function toJS (css) {
   try {
     const code = cssjs.objectify(postcss.parse(css));
-    return JSON.stringify(code, null, 2)
+    const jsCode = JSON.stringify(code, null, 2)
       .replace(/'/g, `\\'`)
       .replace(/"/g, `'`)
       .replace(/'(?=.*:)/g, '')
@@ -188,6 +229,7 @@ function toJS (css) {
         }
       })
       .join('\n')
+    return `(${jsCode});`
   } catch (err) {
     console.error('Couldn\'t convert CSS to JS.', err);
   }
