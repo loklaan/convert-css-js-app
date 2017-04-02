@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import styled, { injectGlobal } from 'styled-components';
+import styled, { injectGlobal, keyframes } from 'styled-components';
 import postcss from 'postcss';
 import cssjs from 'postcss-js';
 import Ace from 'react-ace';
@@ -40,10 +40,22 @@ font-family: 'Slabo', serif;
 }
 `.trim();
 
+const highlightFlash = keyframes`
+  0% { background: transparent; }
+  20% { background: rgba(173, 47, 101, 0.3); }
+  100% { background: transparent; }
+`;
+
 // language=SCSS prefix="*{" suffix="}"
 injectGlobal`
 * {
   box-sizing: border-box;
+}
+
+.ace_line {
+  transition: background 200ms;
+  animation: ${highlightFlash} 1.5s cubic-bezier(0.4, 0, 1, 1) 50ms 1;
+  border-radius: 4px
 }
 
 .ace_tooltip {
